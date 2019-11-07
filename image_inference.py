@@ -14,7 +14,7 @@ from six.moves import urllib
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-model = "./inference/frozen_nasnet_large.pb"
+model = "./inference/frozen_nasnet_mobile.pb"
 model_graph = tf.Graph()
 with model_graph.as_default():
     with tf.gfile.FastGFile(model, 'rb') as f:
@@ -75,20 +75,22 @@ def main(arguments):
         with tf.gfile.FastGFile(image_path, 'rb') as jpeg_file_raw:
             jpeg_file = jpeg_file_raw.read()
             input_0 = decode_image(jpeg_file)
+            
 
             image_height = input_0.shape[0]
             image_width = input_0.shape[1]
             image_height_center = int(image_height/2)
             image_width_center = int(image_width/2)
 
-            tl_crop = input_0[0:331, 0:331]
-            tr_crop = input_0[0:331, image_width-331:image_width]
-            bl_crop = input_0[image_height-331:image_height, 0:331]
-            br_crop = input_0[image_height-331:image_height, image_width-331:image_width]
-            center_crop = input_0[image_height_center - 165: image_height_center + 166, image_width_center - 165: image_width_center + 166]
+            tl_crop = input_0[0:224, 0:224]
+            print(tl_crop.shape)
+            #tr_crop = input_0[0:224, image_width-224:image_width]
+            #bl_crop = input_0[image_height-224:image_height, 0:224]
+            #br_crop = input_0[image_height-224:image_height, image_width-224:image_width]
+            #center_crop = input_0[image_height_center - 111: image_height_center + 112, image_width_center - 111: image_width_center + 112]
 
-            input_concat = np.asarray([tl_crop, tr_crop, bl_crop, br_crop, center_crop])
-            input_batch = input_concat.reshape(-1, 331, 331, 3)
+            #input_concat = np.asarray([tl_crop, tr_crop, bl_crop, br_crop, center_crop])
+            input_batch = tl_crop.reshape(-1, 224, 224, 3)
 
         predictions = diagnose_image(inference_session, input_batch)
         overall_result = np.argmax(np.sum(predictions, axis=0))
